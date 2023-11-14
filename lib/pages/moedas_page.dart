@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:joingroup/models/moeda.dart';
+import 'package:joingroup/pages/moeda_detalhe_page.dart';
 import 'package:joingroup/repository/moeda_repository.dart';
 import 'package:intl/intl.dart';
 
@@ -55,6 +56,15 @@ class _MoedasPageState extends State<MoedasPage> {
     }
   }
 
+  mostrarDetalhes(Moeda moeda){
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => MoedaDetalhePage(moeda: moeda),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -87,6 +97,7 @@ class _MoedasPageState extends State<MoedasPage> {
             onLongPress: () {
               _selectedItem(tabela[moeda]);
             },
+            onTap: () => mostrarDetalhes(tabela[moeda]),
           );
         },
         padding: EdgeInsets.all(16),
