@@ -106,9 +106,7 @@ comprar(){
                 },
                 onChanged: (value) {
                   setState(() {
-                    quantidade = (value.isEmpty)
-                        ? 0
-                        : double.parse(value) / widget.moeda.preco;
+                    quantidade = (value.isEmpty)? 0 : double.parse(value) / widget.moeda.preco;
                   });
                 },
               ),
