@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:joingroup/configs/app_settings.dart';
 import 'package:joingroup/models/moeda.dart';
 import 'package:joingroup/pages/moeda_detalhe_page.dart';
 import 'package:joingroup/repository/favoritas_repository.dart';
@@ -15,10 +16,38 @@ class MoedasPage extends StatefulWidget {
 
 class _MoedasPageState extends State<MoedasPage> {
   final tabela = MoedaRepository.tabela;
-  NumberFormat real = NumberFormat.currency(locale: 'pt_BR', name: 'R\$');
+  late NumberFormat real;
+  late Map<String,String> loc;
   List<Moeda> selecionado = [];
   late FavoritasRepository favoritas;
 
+
+  readNumberFormart(){
+    // lendo provider
+    loc = context.watch<AppSettings>().locale;
+    // atribuindo formatação de acordo o settings preferencia do usuario dinamica
+    real = NumberFormat.currency(locale: loc['locale'], name: loc['name']);
+  }
+
+  changeLanguageButton(){
+    final locale = loc['locale'] == 'pt_BR' ? 'en_US' : 'pt_BR';
+    final name = loc['name'] == 'R\$' ? '\$' : 'R\$';
+
+    return PopupMenuButton(
+        icon: Icon(Icons.language),
+        itemBuilder: (context) => [
+          PopupMenuItem(child: ListTile(
+            leading: Icon(Icons.swap_vert),
+            title:Text('usar $locale'),
+            onTap: (){
+              context.read<AppSettings>().setLocale(locale, name);
+              Navigator.pop(context);
+            },
+          ),)
+        ],
+    );
+
+  }
 
   limpaSelecionado(){
     setState(() {
@@ -39,6 +68,9 @@ class _MoedasPageState extends State<MoedasPage> {
       return AppBar(
         centerTitle: true,
         title: Text('Cripto Moedas'),
+        actions: [
+          changeLanguageButton(),
+        ],
         
       );
     } else {
@@ -76,9 +108,10 @@ class _MoedasPageState extends State<MoedasPage> {
 
   @override
   Widget build(BuildContext context) {
-
     //favoritas = Provider.of<FavoritasRepository>(context);
     favoritas = context.watch<FavoritasRepository>();
+
+    readNumberFormart();
 
     return Scaffold(
       appBar: _appBarDinamico(),

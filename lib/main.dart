@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:joingroup/configs/app_settings.dart';
 import 'package:joingroup/primeiro_aplicativo.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:joingroup/repository/favoritas_repository.dart';
@@ -7,9 +8,12 @@ import 'package:provider/provider.dart';
 
 void main(){
   runApp(
-    ChangeNotifierProvider(
-    create: (context) => FavoritasRepository(),
-    child: PrimeiroAplicativo(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => AppSettings(),),
+        ChangeNotifierProvider(create: (context) => FavoritasRepository(),),
+      ],
+      child: PrimeiroAplicativo(),
     ),
   );
 }
