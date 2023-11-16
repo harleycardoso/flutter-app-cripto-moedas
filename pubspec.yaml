@@ -33,6 +33,7 @@ dependencies:
   intl:
   provider:  
   shared_preferences:
+  sqflite:
     
 
 
