@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:joingroup/ad_helper.dart';
 import 'package:joingroup/configs/app_settings.dart';
 import 'package:joingroup/models/moeda.dart';
 import 'package:joingroup/pages/moeda_detalhe_page.dart';
@@ -17,39 +19,71 @@ class MoedasPage extends StatefulWidget {
 class _MoedasPageState extends State<MoedasPage> {
   final tabela = MoedaRepository.tabela;
   late NumberFormat real;
-  late Map<String,String> loc;
+  late Map<String, String> loc;
   List<Moeda> selecionado = [];
   late FavoritasRepository favoritas;
 
+  late BannerAd _botomBannerAd;
+  bool _isBottomBannerAdLoaded = false;
+  late BannerAd _bannerAd;
+  bool _isBannerAdReady = false;
 
-  readNumberFormart(){
+  @override
+  void initState() {
+    super.initState();
+    _loadBannerAd();
+  }
+
+  void _loadBannerAd() {
+    _bannerAd = BannerAd(
+      adUnitId: AdHelper.bannerAdUnitId,
+      request: AdRequest(),
+      size: AdSize.banner,
+      listener: BannerAdListener(
+        onAdLoaded: (_) {
+          setState(() {
+            _isBannerAdReady = true;
+          });
+        },
+        onAdFailedToLoad: (ad, err) {
+          _isBannerAdReady = false;
+          ad.dispose();
+        },
+      ),
+    );
+
+    _bannerAd.load();
+  }
+
+  readNumberFormart() {
     // lendo provider
     loc = context.watch<AppSettings>().locale;
     // atribuindo formatação de acordo o settings preferencia do usuario dinamica
     real = NumberFormat.currency(locale: loc['locale'], name: loc['name']);
   }
 
-  changeLanguageButton(){
+  changeLanguageButton() {
     final locale = loc['locale'] == 'pt_BR' ? 'en_US' : 'pt_BR';
     final name = loc['name'] == 'R\$' ? '\$' : 'R\$';
 
     return PopupMenuButton(
-        icon: Icon(Icons.language),
-        itemBuilder: (context) => [
-          PopupMenuItem(child: ListTile(
+      icon: Icon(Icons.language),
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          child: ListTile(
             leading: Icon(Icons.swap_vert),
-            title:Text('usar $locale'),
-            onTap: (){
+            title: Text('usar $locale'),
+            onTap: () {
               context.read<AppSettings>().setLocale(locale, name);
               Navigator.pop(context);
             },
-          ),)
-        ],
+          ),
+        )
+      ],
     );
-
   }
 
-  limpaSelecionado(){
+  limpaSelecionado() {
     setState(() {
       selecionado = [];
     });
@@ -71,14 +105,13 @@ class _MoedasPageState extends State<MoedasPage> {
         actions: [
           changeLanguageButton(),
         ],
-        
       );
     } else {
       return AppBar(
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
-           limpaSelecionado;
+            limpaSelecionado;
           },
         ),
         centerTitle: true,
@@ -87,15 +120,15 @@ class _MoedasPageState extends State<MoedasPage> {
         elevation: 1,
         iconTheme: IconThemeData(color: Colors.black87),
         titleTextStyle: TextStyle(
-            color: Colors.black87,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          color: Colors.black87,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
       );
     }
   }
 
-  mostrarDetalhes(Moeda moeda){
+  mostrarDetalhes(Moeda moeda) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -103,8 +136,6 @@ class _MoedasPageState extends State<MoedasPage> {
       ),
     );
   }
-
-  
 
   @override
   Widget build(BuildContext context) {
@@ -130,19 +161,21 @@ class _MoedasPageState extends State<MoedasPage> {
                     width: 40,
                   ),
             title: Row(
-              children:[
+              children: [
                 Text(
-                tabela[moeda].nome,
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.indigo, 
+                  tabela[moeda].nome,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.indigo,
                   ),
                 ),
-                if(favoritas.lista.contains(tabela[moeda]))
-                  Icon(Icons.circle,color:Colors.amber,size:8),
-                ],
+                if (selecionado.contains(tabela[moeda]))
+                  Icon(Icons.circle, color: Colors.amber, size: 8),
+              ],
             ),
+
+            //----------- Show Ads like this -------
             trailing: Text(real.format(tabela[moeda].preco)),
             selected: (selecionado.contains(tabela[moeda])),
             selectedTileColor: Colors.indigo[50],
@@ -155,7 +188,9 @@ class _MoedasPageState extends State<MoedasPage> {
         padding: EdgeInsets.all(16),
         separatorBuilder: (_, __) => Divider(),
         itemCount: tabela.length,
+        
       ),
+      
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: (selecionado.isNotEmpty)
           ? FloatingActionButton.extended(
@@ -172,6 +207,12 @@ class _MoedasPageState extends State<MoedasPage> {
                 ),
               ))
           : null,
+          bottomNavigationBar:_isBannerAdReady
+                ? Container(
+                            width: _bannerAd.size.width.toDouble(),
+                            height: _bannerAd.size.height.toDouble(),
+                            child: AdWidget(ad: _bannerAd),
+                ):null,
     );
   }
 }
